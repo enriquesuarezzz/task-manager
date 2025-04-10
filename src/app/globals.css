@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+
+html {
+  scrollbar-width: smooth;
+  background-color: #ffffff;
+  scroll-behavior: smooth;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  -ms-overflow-style: none;
+}
+body {
+  font-family: 'Barlow', sans-serif;
+}
+section::-webkit-scrollbar {
+  width: 0 !important;
+}
+
+.onHover {
+  transition: all 0.3s ease-in-out;
+}
+
+ul {
+  list-style: disc;
+}
