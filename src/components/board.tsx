@@ -90,6 +90,29 @@ export default function Board() {
     setShowForm(false)
   }
 
+  const handleDeleteTask = (taskId: string) => {
+    setTasks((prev) => {
+      const updated: TasksByStatus = {
+        pending: [],
+        ongoing: [],
+        done: [],
+      }
+
+      for (const status in prev) {
+        updated[status as keyof TasksByStatus] = prev[
+          status as keyof TasksByStatus
+        ].filter((task) => task.id !== taskId)
+      }
+
+      return updated
+    })
+  }
+
+  const handleEditTask = (taskId: string) => {
+    console.log('Edit task:', taskId)
+    // Placeholder for opening a modal or inline form
+  }
+
   const columnTitles = {
     pending: 'Pending',
     ongoing: 'Ongoing',
@@ -121,7 +144,6 @@ export default function Board() {
                   )}
                 </div>
 
-                {/* Optional form */}
                 {columnId === 'pending' && showForm && (
                   <div className="mb-4">
                     <NewTaskForm onCreate={handleCreateTask} />
@@ -137,7 +159,11 @@ export default function Board() {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                         >
-                          <TaskCard {...task} />
+                          <TaskCard
+                            {...task}
+                            onDelete={handleDeleteTask}
+                            onEdit={handleEditTask}
+                          />
                         </div>
                       )}
                     </Draggable>
