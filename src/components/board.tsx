@@ -1,4 +1,5 @@
 'use client'
+
 import {
   DragDropContext,
   Droppable,
@@ -6,8 +7,13 @@ import {
   DropResult,
 } from '@hello-pangea/dnd'
 import TaskCard from '@/components/task_card'
-import { useState } from 'react'
 import NewTaskForm from './new_task_form'
+import { useEffect, useState } from 'react'
+import {
+  fetchTasks,
+  createTask as apiCreateTask,
+  deleteTask as apiDeleteTask,
+} from '@/../lib/api'
 
 type Priority = 'Low' | 'Medium' | 'High'
 
@@ -25,38 +31,40 @@ type TasksByStatus = {
   done: Task[]
 }
 
-const initialData: TasksByStatus = {
-  pending: [
-    {
-      id: '1',
-      title: 'Learn React',
-      description: 'Description with more text',
-      date: '2023-10-22',
-      priority: 'Low',
-    },
-    {
-      id: '2',
-      title: 'Review CSS Modules',
-      description: 'Another task description',
-      date: '2023-10-22',
-      priority: 'Low',
-    },
-  ],
-  ongoing: [],
-  done: [
-    {
-      id: '3',
-      title: 'Get a Job',
-      description: 'Some description here',
-      date: '2023-10-23',
-      priority: 'High',
-    },
-  ],
-}
-
 export default function Board() {
-  const [tasks, setTasks] = useState(initialData)
+  const [tasks, setTasks] = useState<TasksByStatus>({
+    pending: [],
+    ongoing: [],
+    done: [],
+  })
+
   const [showForm, setShowForm] = useState(false)
+
+  useEffect(() => {
+    const loadTasks = async () => {
+      const allTasks = await fetchTasks()
+
+      const organized: TasksByStatus = {
+        pending: [],
+        ongoing: [],
+        done: [],
+      }
+
+      allTasks.forEach((task: any) => {
+        organized[task.status as keyof TasksByStatus].push({
+          id: task._id,
+          title: task.title,
+          description: task.description,
+          date: task.date,
+          priority: task.priority,
+        })
+      })
+
+      setTasks(organized)
+    }
+
+    loadTasks()
+  }, [])
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result
@@ -79,18 +87,36 @@ export default function Board() {
         [source.droppableId]: sourceCol,
         [destination.droppableId]: destCol,
       }))
+      // You could also call an API here to update task.status if needed
     }
   }
 
-  const handleCreateTask = (task: Task) => {
+  const handleCreateTask = async (task: Task) => {
+    const saved = await apiCreateTask({
+      ...task,
+      status: 'pending',
+    })
+
     setTasks((prev) => ({
       ...prev,
-      pending: [...prev.pending, task],
+      pending: [
+        ...prev.pending,
+        {
+          id: saved._id,
+          title: saved.title,
+          description: saved.description,
+          date: saved.date,
+          priority: saved.priority,
+        },
+      ],
     }))
+
     setShowForm(false)
   }
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
+    await apiDeleteTask(taskId)
+
     setTasks((prev) => {
       const updated: TasksByStatus = {
         pending: [],
