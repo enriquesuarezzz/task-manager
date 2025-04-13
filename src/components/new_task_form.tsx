@@ -50,10 +50,11 @@ export default function NewTaskForm({ onCreate, onCancel, task }: Props) {
       onSubmit={handleSubmit}
       className="w-full max-w-md space-y-4 rounded-lg bg-white p-4 shadow"
     >
+      {/* Form title */}
       <h2 className="text-lg font-semibold">
         {task ? 'Edit Task' : 'Create New Task'}
       </h2>
-
+      {/* Form title */}
       <input
         type="text"
         placeholder="Title"
@@ -62,7 +63,7 @@ export default function NewTaskForm({ onCreate, onCancel, task }: Props) {
         className="w-full rounded border p-2"
         required
       />
-
+      {/* Form description */}
       <textarea
         placeholder="Description"
         value={description}
@@ -70,7 +71,7 @@ export default function NewTaskForm({ onCreate, onCancel, task }: Props) {
         className="w-full rounded border p-2"
         required
       />
-
+      {/* Form date */}
       <input
         type="date"
         value={date}
@@ -79,6 +80,7 @@ export default function NewTaskForm({ onCreate, onCancel, task }: Props) {
         required
       />
 
+      {/* Form priority */}
       <select
         value={priority}
         onChange={(e) =>
@@ -90,7 +92,7 @@ export default function NewTaskForm({ onCreate, onCancel, task }: Props) {
         <option value="Medium">Medium</option>
         <option value="High">High</option>
       </select>
-
+      {/* Form buttons */}
       <div className="flex space-x-2">
         <button
           type="submit"
