@@ -1,38 +1,44 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import type { Task } from '@/../lib/types'
 
 type Props = {
-  onCreate: (task: Task) => void
+  onCreate: (task: Task) => Promise<void>
+  onCancel: () => void
+  task?: Task // Make task optional
 }
 
-export type Task = {
-  id: string
-  title: string
-  description: string
-  date: string
-  priority: 'Low' | 'Medium' | 'High'
-}
-
-export default function NewTaskForm({ onCreate }: Props) {
+export default function NewTaskForm({ onCreate, onCancel, task }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [date, setDate] = useState('')
   const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>('Low')
 
+  // If we are editing a task, pre-fill the form fields
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title)
+      setDescription(task.description)
+      setDate(task.date)
+      setPriority(task.priority)
+    }
+  }, [task])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     const newTask: Task = {
-      id: crypto.randomUUID(),
+      id: task ? task.id : crypto.randomUUID(),
       title,
       description,
       date,
       priority,
+      status: task ? task.status : 'pending', // Default to 'pending' for new tasks
     }
 
     onCreate(newTask)
 
-    // Clear form
+    // Clear form after submitting
     setTitle('')
     setDescription('')
     setDate('')
@@ -44,8 +50,11 @@ export default function NewTaskForm({ onCreate }: Props) {
       onSubmit={handleSubmit}
       className="w-full max-w-md space-y-4 rounded-lg bg-white p-4 shadow"
     >
-      <h2 className="text-lg font-semibold">Create New Task</h2>
-
+      {/* Form title */}
+      <h2 className="text-lg font-semibold">
+        {task ? 'Edit Task' : 'Create New Task'}
+      </h2>
+      {/* Form title */}
       <input
         type="text"
         placeholder="Title"
@@ -54,7 +63,7 @@ export default function NewTaskForm({ onCreate }: Props) {
         className="w-full rounded border p-2"
         required
       />
-
+      {/* Form description */}
       <textarea
         placeholder="Description"
         value={description}
@@ -62,7 +71,7 @@ export default function NewTaskForm({ onCreate }: Props) {
         className="w-full rounded border p-2"
         required
       />
-
+      {/* Form date */}
       <input
         type="date"
         value={date}
@@ -71,6 +80,7 @@ export default function NewTaskForm({ onCreate }: Props) {
         required
       />
 
+      {/* Form priority */}
       <select
         value={priority}
         onChange={(e) =>
@@ -82,13 +92,22 @@ export default function NewTaskForm({ onCreate }: Props) {
         <option value="Medium">Medium</option>
         <option value="High">High</option>
       </select>
-
-      <button
-        type="submit"
-        className="rounded bg-blue-600 px-4 py-2 text-white"
-      >
-        Add Task
-      </button>
+      {/* Form buttons */}
+      <div className="flex space-x-2">
+        <button
+          type="submit"
+          className="rounded bg-blue-600 px-4 py-2 text-white"
+        >
+          {task ? 'Update Task' : 'Add Task'}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded bg-gray-300 px-4 py-2 text-black"
+        >
+          Cancel
+        </button>
+      </div>
     </form>
   )
 }

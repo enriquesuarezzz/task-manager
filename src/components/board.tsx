@@ -1,5 +1,4 @@
 'use client'
-
 import {
   DragDropContext,
   Droppable,
@@ -13,17 +12,9 @@ import {
   fetchTasks,
   createTask as apiCreateTask,
   deleteTask as apiDeleteTask,
+  updateTask as apiUpdateTask,
 } from '@/../lib/api'
-
-type Priority = 'Low' | 'Medium' | 'High'
-
-type Task = {
-  id: string
-  title: string
-  description: string
-  date: string
-  priority: Priority
-}
+import type { Task } from '@/../lib/types'
 
 type TasksByStatus = {
   pending: Task[]
@@ -31,24 +22,25 @@ type TasksByStatus = {
   done: Task[]
 }
 
+const emptyTasksByStatus = (): TasksByStatus => ({
+  pending: [],
+  ongoing: [],
+  done: [],
+})
+
+// Create initial task States
+
 export default function Board() {
-  const [tasks, setTasks] = useState<TasksByStatus>({
-    pending: [],
-    ongoing: [],
-    done: [],
-  })
-
+  const [tasks, setTasks] = useState<TasksByStatus>(emptyTasksByStatus())
   const [showForm, setShowForm] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
+  // Fetch tasks on component mount
   useEffect(() => {
     const loadTasks = async () => {
       const allTasks = await fetchTasks()
 
-      const organized: TasksByStatus = {
-        pending: [],
-        ongoing: [],
-        done: [],
-      }
+      const organized: TasksByStatus = emptyTasksByStatus()
 
       allTasks.forEach((task: any) => {
         organized[task.status as keyof TasksByStatus].push({
@@ -57,6 +49,7 @@ export default function Board() {
           description: task.description,
           date: task.date,
           priority: task.priority,
+          status: task.status,
         })
       })
 
@@ -66,6 +59,7 @@ export default function Board() {
     loadTasks()
   }, [])
 
+  // Handle drag and drop
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result
     if (!destination) return
@@ -74,6 +68,7 @@ export default function Board() {
     const destCol = [...tasks[destination.droppableId as keyof typeof tasks]]
     const [movedTask] = sourceCol.splice(source.index, 1)
 
+    // If moved within the same column, just update state
     if (source.droppableId === destination.droppableId) {
       sourceCol.splice(destination.index, 0, movedTask)
       setTasks((prev) => ({
@@ -81,20 +76,28 @@ export default function Board() {
         [source.droppableId]: sourceCol,
       }))
     } else {
-      destCol.splice(destination.index, 0, movedTask)
+      // Otherwise, update the task's status and move to the new column
+      const updatedTask = {
+        ...movedTask,
+        status: destination.droppableId as Task['status'],
+      }
+      destCol.splice(destination.index, 0, updatedTask)
+
       setTasks((prev) => ({
         ...prev,
         [source.droppableId]: sourceCol,
         [destination.droppableId]: destCol,
       }))
-      // You could also call an API here to update task.status if needed
+
+      apiUpdateTask(updatedTask)
     }
   }
 
+  // Handle creating a new task
   const handleCreateTask = async (task: Task) => {
     const saved = await apiCreateTask({
       ...task,
-      status: 'pending',
+      status: 'pending', // Default to 'pending'
     })
 
     setTasks((prev) => ({
@@ -107,6 +110,7 @@ export default function Board() {
           description: saved.description,
           date: saved.date,
           priority: saved.priority,
+          status: saved.status,
         },
       ],
     }))
@@ -114,15 +118,34 @@ export default function Board() {
     setShowForm(false)
   }
 
+  // Handle updating a task
+  const handleUpdateTask = async (updatedTask: Task) => {
+    const saved = await apiUpdateTask(updatedTask)
+
+    setTasks((prev) => {
+      const updated: TasksByStatus = emptyTasksByStatus()
+
+      for (const status in prev) {
+        updated[status as keyof TasksByStatus] = prev[
+          status as keyof TasksByStatus
+        ].map((task) =>
+          task.id === updatedTask.id ? { ...task, ...updatedTask } : task,
+        )
+      }
+
+      return updated
+    })
+
+    setEditingTask(null)
+    setShowForm(false)
+  }
+
+  // Handle deleting a task
   const handleDeleteTask = async (taskId: string) => {
     await apiDeleteTask(taskId)
 
     setTasks((prev) => {
-      const updated: TasksByStatus = {
-        pending: [],
-        ongoing: [],
-        done: [],
-      }
+      const updated: TasksByStatus = emptyTasksByStatus()
 
       for (const status in prev) {
         updated[status as keyof TasksByStatus] = prev[
@@ -134,11 +157,23 @@ export default function Board() {
     })
   }
 
+  // Handle task editing
   const handleEditTask = (taskId: string) => {
-    console.log('Edit task:', taskId)
-    // Placeholder for opening a modal or inline form
+    const allTasks = [...tasks.pending, ...tasks.ongoing, ...tasks.done]
+    const taskToEdit = allTasks.find((task) => task.id === taskId)
+    if (taskToEdit) {
+      setEditingTask(taskToEdit)
+      setShowForm(true)
+    }
   }
 
+  // Handle canceling the edit form
+  const handleCancelEdit = () => {
+    setEditingTask(null)
+    setShowForm(false)
+  }
+
+  // Column titles for each status
   const columnTitles = {
     pending: 'Pending',
     ongoing: 'Ongoing',
@@ -147,6 +182,7 @@ export default function Board() {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
+      {/* Main board component */}
       <div className="grid min-h-screen grid-cols-1 gap-6 bg-gray-100 p-6 md:grid-cols-3">
         {Object.entries(tasks).map(([columnId, tasksInColumn]) => (
           <Droppable droppableId={columnId} key={columnId}>
@@ -156,26 +192,38 @@ export default function Board() {
                 {...provided.droppableProps}
                 className="min-h-[300px] rounded-lg bg-white p-4 shadow"
               >
+                {/* Column header */}
                 <div className="mb-4 flex items-center justify-between">
+                  {/* Column title */}
                   <h2 className="text-xl font-bold">
                     {columnTitles[columnId as keyof typeof columnTitles]}
                   </h2>
+                  {/* Add task button */}
                   {columnId === 'pending' && (
                     <button
-                      onClick={() => setShowForm((prev) => !prev)}
+                      onClick={() => {
+                        setShowForm((prev) => !prev)
+                        setEditingTask(null)
+                      }}
                       className="rounded bg-blue-100 px-2 text-xl font-bold text-blue-500"
                     >
                       +
                     </button>
                   )}
                 </div>
-
+                {/* Task form */}
                 {columnId === 'pending' && showForm && (
                   <div className="mb-4">
-                    <NewTaskForm onCreate={handleCreateTask} />
+                    <NewTaskForm
+                      task={editingTask ?? undefined}
+                      onCreate={
+                        editingTask ? handleUpdateTask : handleCreateTask
+                      }
+                      onCancel={handleCancelEdit}
+                    />
                   </div>
                 )}
-
+                {/* Tasks */}
                 <div className="space-y-4">
                   {tasksInColumn.map((task, idx) => (
                     <Draggable draggableId={task.id} index={idx} key={task.id}>
@@ -185,6 +233,7 @@ export default function Board() {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                         >
+                          {/* task card */}
                           <TaskCard
                             {...task}
                             onDelete={handleDeleteTask}
