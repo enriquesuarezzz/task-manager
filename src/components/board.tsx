@@ -13,17 +13,9 @@ import {
   fetchTasks,
   createTask as apiCreateTask,
   deleteTask as apiDeleteTask,
+  updateTask as apiUpdateTask,
 } from '@/../lib/api'
-
-type Priority = 'Low' | 'Medium' | 'High'
-
-type Task = {
-  id: string
-  title: string
-  description: string
-  date: string
-  priority: Priority
-}
+import type { Task } from '@/../lib/types'
 
 type TasksByStatus = {
   pending: Task[]
@@ -31,24 +23,23 @@ type TasksByStatus = {
   done: Task[]
 }
 
+const emptyTasksByStatus = (): TasksByStatus => ({
+  pending: [],
+  ongoing: [],
+  done: [],
+})
+
 export default function Board() {
-  const [tasks, setTasks] = useState<TasksByStatus>({
-    pending: [],
-    ongoing: [],
-    done: [],
-  })
+  const [tasks, setTasks] = useState<TasksByStatus>(emptyTasksByStatus())
 
   const [showForm, setShowForm] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   useEffect(() => {
     const loadTasks = async () => {
       const allTasks = await fetchTasks()
 
-      const organized: TasksByStatus = {
-        pending: [],
-        ongoing: [],
-        done: [],
-      }
+      const organized: TasksByStatus = emptyTasksByStatus()
 
       allTasks.forEach((task: any) => {
         organized[task.status as keyof TasksByStatus].push({
@@ -57,6 +48,7 @@ export default function Board() {
           description: task.description,
           date: task.date,
           priority: task.priority,
+          status: task.status,
         })
       })
 
@@ -81,13 +73,19 @@ export default function Board() {
         [source.droppableId]: sourceCol,
       }))
     } else {
-      destCol.splice(destination.index, 0, movedTask)
+      const updatedTask = {
+        ...movedTask,
+        status: destination.droppableId as Task['status'],
+      }
+      destCol.splice(destination.index, 0, updatedTask)
+
       setTasks((prev) => ({
         ...prev,
         [source.droppableId]: sourceCol,
         [destination.droppableId]: destCol,
       }))
-      // You could also call an API here to update task.status if needed
+
+      apiUpdateTask(updatedTask)
     }
   }
 
@@ -107,6 +105,7 @@ export default function Board() {
           description: saved.description,
           date: saved.date,
           priority: saved.priority,
+          status: saved.status,
         },
       ],
     }))
@@ -114,15 +113,32 @@ export default function Board() {
     setShowForm(false)
   }
 
+  const handleUpdateTask = async (updatedTask: Task) => {
+    const saved = await apiUpdateTask(updatedTask)
+
+    setTasks((prev) => {
+      const updated: TasksByStatus = emptyTasksByStatus()
+
+      for (const status in prev) {
+        updated[status as keyof TasksByStatus] = prev[
+          status as keyof TasksByStatus
+        ].map((task) =>
+          task.id === updatedTask.id ? { ...task, ...updatedTask } : task,
+        )
+      }
+
+      return updated
+    })
+
+    setEditingTask(null)
+    setShowForm(false)
+  }
+
   const handleDeleteTask = async (taskId: string) => {
     await apiDeleteTask(taskId)
 
     setTasks((prev) => {
-      const updated: TasksByStatus = {
-        pending: [],
-        ongoing: [],
-        done: [],
-      }
+      const updated: TasksByStatus = emptyTasksByStatus()
 
       for (const status in prev) {
         updated[status as keyof TasksByStatus] = prev[
@@ -135,8 +151,17 @@ export default function Board() {
   }
 
   const handleEditTask = (taskId: string) => {
-    console.log('Edit task:', taskId)
-    // Placeholder for opening a modal or inline form
+    const allTasks = [...tasks.pending, ...tasks.ongoing, ...tasks.done]
+    const taskToEdit = allTasks.find((task) => task.id === taskId)
+    if (taskToEdit) {
+      setEditingTask(taskToEdit)
+      setShowForm(true)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingTask(null)
+    setShowForm(false)
   }
 
   const columnTitles = {
@@ -162,7 +187,10 @@ export default function Board() {
                   </h2>
                   {columnId === 'pending' && (
                     <button
-                      onClick={() => setShowForm((prev) => !prev)}
+                      onClick={() => {
+                        setShowForm((prev) => !prev)
+                        setEditingTask(null)
+                      }}
                       className="rounded bg-blue-100 px-2 text-xl font-bold text-blue-500"
                     >
                       +
@@ -172,7 +200,13 @@ export default function Board() {
 
                 {columnId === 'pending' && showForm && (
                   <div className="mb-4">
-                    <NewTaskForm onCreate={handleCreateTask} />
+                    <NewTaskForm
+                      task={editingTask ?? undefined}
+                      onCreate={
+                        editingTask ? handleUpdateTask : handleCreateTask
+                      }
+                      onCancel={handleCancelEdit}
+                    />
                   </div>
                 )}
 
