@@ -42,7 +42,7 @@ export default function Board() {
 
       const organized: TasksByStatus = emptyTasksByStatus()
 
-      allTasks.forEach((task: any) => {
+      allTasks.forEach((task: Task & { _id: string }) => {
         organized[task.status as keyof TasksByStatus].push({
           id: task._id,
           title: task.title,
@@ -120,7 +120,7 @@ export default function Board() {
 
   // Handle updating a task
   const handleUpdateTask = async (updatedTask: Task) => {
-    const saved = await apiUpdateTask(updatedTask)
+    await apiUpdateTask(updatedTask)
 
     setTasks((prev) => {
       const updated: TasksByStatus = emptyTasksByStatus()
