@@ -183,7 +183,7 @@ export default function Board() {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       {/* Main board component */}
-      <div className="grid min-h-screen grid-cols-1 gap-6 bg-gray-100 p-6 md:grid-cols-3">
+      <div className="grid h-fit grid-cols-1 gap-6 bg-[#a1cfd8] p-6 md:grid-cols-3">
         {Object.entries(tasks).map(([columnId, tasksInColumn]) => (
           <Droppable droppableId={columnId} key={columnId}>
             {(provided) => (
