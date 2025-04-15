@@ -95,24 +95,3 @@ node server.mjs
 
 The backend API will be available at `http://localhost:5000/api`
 
----
-
-## 🧪 Future Improvements
-
-- ✅ User authentication
-- 🔔 Notifications
-- 📈 Task history or logs
-- 🧑‍🤝‍🧑 Team collaboration
-
----
-
-## 📝 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## 🙌 Acknowledgments
-
-- [@hello-pangea/dnd](https://github.com/hello-pangea/dnd)
-- [Tailwind CSS](https://tailwindcss.com/)
