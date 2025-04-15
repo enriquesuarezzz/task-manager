@@ -41,8 +41,8 @@ A full-stack task management app with drag-and-drop features, task creation/edit
 
 The project is split into two separate repositories:
 
-- **Frontend Repo**: (https://github.com/enriquesuarezzz/task-manager
-- **Backend Repo**: (https://github.com/enriquesuarezzz/task-manager-api
+- **Frontend Repo**: https://github.com/enriquesuarezzz/task-manager
+- **Backend Repo**: https://github.com/enriquesuarezzz/task-manager-api
 
 ---
 
