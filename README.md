@@ -76,7 +76,7 @@ The app will be available at `http://localhost:3000`
 
 ```bash
 git clone https://github.com/enriquesuarezzz/task-manager-api.git
-cd kanban-backend
+cd task-manager-api
 npm install
 ```
 
