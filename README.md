@@ -1,4 +1,4 @@
-# 🧠 Task manager — Full Stack
+# 📋 Task Manager — Full Stack
 
 A full-stack task management app with drag-and-drop features, task creation/editing, and real-time state syncing. Built with **Next.js (Frontend)** and **Node.js + MongoDB (Backend)**.
 
