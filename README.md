@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 Task manager — Full Stack
 
-## Getting Started
+A full-stack Kanban-style task management app with drag-and-drop features, task creation/editing, and real-time state syncing. Built with **Next.js (Frontend)** and **Node.js + MongoDB (Backend)**.
 
-First, run the development server:
+
+## 🚀 Features
+
+- 📋 Create, edit, and delete tasks
+- 🏷️ Organize tasks by status: Pending, Ongoing, Done
+- 🖱️ Drag and drop tasks between columns
+- 📅 Set task details including due dates and priority
+- 🎨 Clean UI with Tailwind CSS
+- 🔄 Frontend and backend integration via REST API
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+- Next.js
+- React
+- Tailwind CSS
+- @hello-pangea/dnd
+
+### Backend
+- Node.js
+- Express
+- MongoDB (with Mongoose)
+
+---
+
+## 📦 Getting Started
+
+### Prerequisites
+- Node.js (v18+ recommended)
+- MongoDB (local or Atlas)
+
+---
+
+## 📁 Repository Structure
+
+The project is split into two separate repositories:
+
+- **Frontend Repo**: [kanban-frontend](https://github.com/enriquesuarezzz/task-manager
+- **Backend Repo**: [kanban-backend](https://github.com/enriquesuarezzz/task-manager-api
+
+---
+
+## ⚙️ Setup Instructions
+
+### 🔷 Frontend (Next.js)
+
+```bash
+git clone https://github.com/enriquesuarezzz/task-manager.git
+cd task-manager
+npm install
+```
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:5000/api
+```
+
+Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will be available at `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🔶 Backend (Node.js + MongoDB)
 
-## Learn More
+```bash
+git clone https://github.com/enriquesuarezzz/task-manager-api.git
+cd kanban-backend
+npm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+Create `.env`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+PORT=5000
+MONGO_URI='paste_your_mongo_uri'
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Start the server:
 
-## Deploy on Vercel
+```bash
+node server.mjs
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The backend API will be available at `http://localhost:5000/api`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🧪 Future Improvements
+
+- ✅ User authentication
+- 🔔 Notifications
+- 📈 Task history or logs
+- 🧑‍🤝‍🧑 Team collaboration
+
+---
+
+## 📝 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🙌 Acknowledgments
+
+- [@hello-pangea/dnd](https://github.com/hello-pangea/dnd)
+- [Tailwind CSS](https://tailwindcss.com/)
