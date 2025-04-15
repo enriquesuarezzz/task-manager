@@ -28,16 +28,23 @@ const emptyTasksByStatus = (): TasksByStatus => ({
   done: [],
 })
 
-// Create initial task States
+// Spinner component
+const Spinner = () => (
+  <div className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-white">
+    <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+  </div>
+)
 
 export default function Board() {
   const [tasks, setTasks] = useState<TasksByStatus>(emptyTasksByStatus())
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [loading, setLoading] = useState(true)
 
   // Fetch tasks on component mount
   useEffect(() => {
     const loadTasks = async () => {
+      setLoading(true)
       const allTasks = await fetchTasks()
 
       const organized: TasksByStatus = emptyTasksByStatus()
@@ -54,6 +61,7 @@ export default function Board() {
       })
 
       setTasks(organized)
+      setLoading(false)
     }
 
     loadTasks()
@@ -68,7 +76,6 @@ export default function Board() {
     const destCol = [...tasks[destination.droppableId as keyof typeof tasks]]
     const [movedTask] = sourceCol.splice(source.index, 1)
 
-    // If moved within the same column, just update state
     if (source.droppableId === destination.droppableId) {
       sourceCol.splice(destination.index, 0, movedTask)
       setTasks((prev) => ({
@@ -76,7 +83,6 @@ export default function Board() {
         [source.droppableId]: sourceCol,
       }))
     } else {
-      // Otherwise, update the task's status and move to the new column
       const updatedTask = {
         ...movedTask,
         status: destination.droppableId as Task['status'],
@@ -97,7 +103,7 @@ export default function Board() {
   const handleCreateTask = async (task: Task) => {
     const saved = await apiCreateTask({
       ...task,
-      status: 'pending', // Default to 'pending'
+      status: 'pending',
     })
 
     setTasks((prev) => ({
@@ -173,7 +179,6 @@ export default function Board() {
     setShowForm(false)
   }
 
-  // Column titles for each status
   const columnTitles = {
     pending: 'Pending',
     ongoing: 'Ongoing',
@@ -182,7 +187,6 @@ export default function Board() {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      {/* Main board component */}
       <div className="grid h-fit grid-cols-1 gap-6 bg-[#a1cfd8] p-6 md:grid-cols-3">
         {Object.entries(tasks).map(([columnId, tasksInColumn]) => (
           <Droppable droppableId={columnId} key={columnId}>
@@ -194,11 +198,9 @@ export default function Board() {
               >
                 {/* Column header */}
                 <div className="mb-4 flex items-center justify-between">
-                  {/* Column title */}
                   <h2 className="text-xl font-bold">
                     {columnTitles[columnId as keyof typeof columnTitles]}
                   </h2>
-                  {/* Add task button */}
                   {columnId === 'pending' && (
                     <button
                       onClick={() => {
@@ -211,6 +213,7 @@ export default function Board() {
                     </button>
                   )}
                 </div>
+
                 {/* Task form */}
                 {columnId === 'pending' && showForm && (
                   <div className="mb-4">
@@ -223,27 +226,39 @@ export default function Board() {
                     />
                   </div>
                 )}
-                {/* Tasks */}
+
+                {/* Spinner or Tasks */}
                 <div className="space-y-4">
-                  {tasksInColumn.map((task, idx) => (
-                    <Draggable draggableId={task.id} index={idx} key={task.id}>
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
+                  {loading ? (
+                    <div className="flex h-24 items-center justify-center">
+                      <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                    </div>
+                  ) : (
+                    <>
+                      {tasksInColumn.map((task, idx) => (
+                        <Draggable
+                          draggableId={task.id}
+                          index={idx}
+                          key={task.id}
                         >
-                          {/* task card */}
-                          <TaskCard
-                            {...task}
-                            onDelete={handleDeleteTask}
-                            onEdit={handleEditTask}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              <TaskCard
+                                {...task}
+                                onDelete={handleDeleteTask}
+                                onEdit={handleEditTask}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </>
+                  )}
                 </div>
               </div>
             )}
