@@ -1,6 +1,6 @@
 # 🧠 Task manager — Full Stack
 
-A full-stack Kanban-style task management app with drag-and-drop features, task creation/editing, and real-time state syncing. Built with **Next.js (Frontend)** and **Node.js + MongoDB (Backend)**.
+A full-stack task management app with drag-and-drop features, task creation/editing, and real-time state syncing. Built with **Next.js (Frontend)** and **Node.js + MongoDB (Backend)**.
 
 
 ## 🚀 Features
